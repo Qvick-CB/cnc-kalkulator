@@ -3,112 +3,833 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISO Tolerance (ISO 286) - CNC PRECITOOL</title>
+  <title>Strojírenská kalkulačka - PRECITOOL</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0b1426; color: #ffffff; margin: 0; padding: 16px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 540px; }
-    h1 { font-size: 1.25rem; text-align: center; margin-bottom: 16px; color: #e2e8f0; }
-    .card { background: rgba(20, 43, 109, 0.45); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-    .card-hole { background: rgba(20, 43, 109, 0.6); border-color: rgba(6, 182, 212, 0.3); }
-    .card-shaft { background: rgba(20, 43, 109, 0.6); border-color: rgba(245, 158, 11, 0.3); }
-    label { font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 6px; }
-    input, select { width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 1rem; outline: none; }
-    input:focus, select:focus { border-color: #38bdf8; }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px 0; }
-    .chip { background: rgba(20, 43, 109, 0.8); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 5px 10px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
+    body { background-color: #070d19; color: #ffffff; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+    .navbar { background: rgba(27, 57, 143, 0.95); display: flex; overflow-x: auto; padding: 6px 8px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.15); }
+    .nav-btn { background: transparent; border: none; color: rgba(255,255,255,0.75); padding: 8px 12px; font-size: 0.85rem; font-weight: 500; border-radius: 6px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+    .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-btn.active { background: #142b6d; color: #22d3ee; font-weight: bold; }
+    .container { width: 100%; max-width: 580px; margin: 0 auto; padding: 14px 12px 60px 12px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .card { background: rgba(14, 30, 76, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 14px; margin-bottom: 12px; backdrop-filter: blur(8px); }
+    .card-cyan { border-color: rgba(34, 211, 238, 0.35); background: rgba(20, 43, 109, 0.65); }
+    .card-amber { border-color: rgba(251, 191, 36, 0.35); background: rgba(20, 43, 109, 0.65); }
+    h2 { font-size: 1.15rem; margin: 0 0 10px 0; color: #22d3ee; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .form-group { margin-bottom: 8px; }
+    label { font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.95rem; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #22d3ee; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px 0; }
+    .chip { background: #0e1e4c; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 4px 10px; border-radius: 16px; font-size: 0.78rem; cursor: pointer; user-select: none; }
     .chip.active { background: #1b398f; border-color: #22d3ee; color: #22d3ee; font-weight: bold; }
-    .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .segmented { display: flex; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+    .seg-btn { flex: 1; background: #0e1e4c; border: none; color: #cbd5e1; padding: 7px 4px; font-size: 0.8rem; cursor: pointer; text-align: center; }
+    .seg-btn.active { background: #142b6d; color: #22d3ee; font-weight: bold; }
     .badge { font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
+    .badge-amber { background: #d97706; color: #000; }
     .badge-cyan { background: rgba(34, 211, 238, 0.15); color: #22d3ee; }
-    .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-    .fit-badge { border: 1px solid; border-radius: 6px; padding: 4px 10px; font-weight: bold; font-size: 0.85rem; }
-    .row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+    .row { display: flex; justify-content: space-between; font-size: 0.86rem; margin-bottom: 5px; }
     .row-bold { font-weight: bold; font-size: 0.95rem; }
     .val-cyan { color: #22d3ee; font-weight: bold; }
     .val-amber { color: #fbbf24; font-weight: bold; }
     .val-green { color: #4ade80; font-weight: bold; }
     .val-red { color: #f87171; font-weight: bold; }
-    hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 12px 0; }
+    .val-orange { color: #fb923c; font-weight: bold; }
+    hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 10px 0; }
+    .slider-box { background: rgba(14, 30, 76, 0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; font-size: 0.8rem; }
+    .slider-row { display: flex; justify-content: space-between; align-items: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem; }
+    table, th, td { border: 1px solid rgba(255,255,255,0.12); }
+    th, td { padding: 6px 8px; text-align: left; }
+    .btn { background: #22d3ee; color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .btn-outline { background: transparent; border: 1px solid #38bdf8; color: #38bdf8; }
   </style>
 </head>
 <body>
+
+<div class="navbar">
+  <button class="nav-btn" onclick="openTab('frezovani')">Frézování</button>
+  <button class="nav-btn" onclick="openTab('soustruzeni')">Soustružení</button>
+  <button class="nav-btn" onclick="openTab('vrtani')">Vrtání</button>
+  <button class="nav-btn" onclick="openTab('zavitovani')">Závitování</button>
+  <button class="nav-btn active" onclick="openTab('iso')">ISO Tol.</button>
+  <button class="nav-btn" onclick="openTab('tvrdost')">Tvrdost</button>
+  <button class="nav-btn" onclick="openTab('onas')">O nás</button>
+</div>
+
 <div class="container">
-  <h1>ISO Tolerance – (ISO 286)</h1>
 
-  <div class="card">
-    <label>Jmenovitý rozměr D (1 - 1000 mm)</label>
-    <input type="number" id="nominal" value="90" min="1" max="1000" step="any">
-
-    <label style="margin-top: 12px;">Rychlý výběr uložení:</label>
-    <div class="chips" id="chips"></div>
-
-    <div class="grid-row">
-      <div>
-        <label>Poloha DÍRY</label>
-        <select id="holeLetter"></select>
-      </div>
-      <div>
-        <label>Stupeň IT díry</label>
-        <select id="holeIt"></select>
-      </div>
-    </div>
-
-    <div class="grid-row">
-      <div>
-        <label>Poloha HŘÍDELE</label>
-        <select id="shaftLetter"></select>
-      </div>
-      <div>
-        <label>Stupeň IT hřídele</label>
-        <select id="shaftIt"></select>
-      </div>
-    </div>
-  </div>
-
-  <!-- KARTA DÍRY -->
-  <div class="card card-hole">
+  <!-- ==================== SDÍLENÝ MATERIÁL WMG ==================== -->
+  <div class="card" id="wmgCard">
     <div class="header-row">
-      <span style="font-weight: bold; font-size: 1.05rem; color: #22d3ee;" id="holeTitle">DÍRA: Ø 90.00 K7</span>
-      <span class="badge badge-cyan" id="holeItBadge">IT7 = 35.0 µm</span>
+      <span style="font-weight: bold; color: #fbbf24; font-size: 0.95rem;">Materiál obrobku (WMG)</span>
+      <span class="badge badge-amber" id="wmgKvgBadge">kvG = 1.00</span>
     </div>
-    <div class="row"><span>Horní úchylka (ES):</span><span class="val-cyan" id="holeEs"></span></div>
-    <div class="row"><span>Střed tolerančního pole:</span><span id="holeMid"></span></div>
-    <div class="row"><span>Dolní úchylka (EI):</span><span class="val-cyan" id="holeEi"></span></div>
+    <div class="form-group">
+      <select id="wmgSelect" onchange="onMaterialSelected()"></select>
+    </div>
+    <div class="row">
+      <span id="wmgDesc" style="font-size: 0.8rem; color: #94a3b8;">uhlíkové oceli s obsahem C 0.25% až 0.55%</span>
+      <span id="wmgHardness" style="font-size: 0.8rem; color: #cbd5e1;">< 240HB</span>
+    </div>
+    <div style="font-size: 0.72rem; color: #64748b; margin-top: 4px;" id="wmgExamples">AISI 1030, C30, DIN 1.0528, ČSN 12050</div>
     <hr>
-    <div class="row row-bold"><span>Max. rozměr Dmax:</span><span id="holeMax"></span></div>
-    <div class="row"><span>Střední rozměr Dstř:</span><span id="holeMidMm"></span></div>
-    <div class="row row-bold"><span>Min. rozměr Dmin:</span><span id="holeMin"></span></div>
+    <div class="form-group" style="margin-bottom: 0;">
+      <label>Základní řezná rychlost vc (100%):</label>
+      <input type="number" id="baseVc" value="180" step="any" oninput="onBaseVcChanged()">
+    </div>
   </div>
 
-  <!-- KARTA HŘÍDELE -->
-  <div class="card card-shaft">
-    <div class="header-row">
-      <span style="font-weight: bold; font-size: 1.05rem; color: #fbbf24;" id="shaftTitle">HŘÍDEL: Ø 90.00 h6</span>
-      <span class="badge badge-amber" id="shaftItBadge">IT6 = 22.0 µm</span>
+  <!-- ==================== 1. FRÉZOVÁNÍ ==================== -->
+  <div id="frezovani" class="tab-content">
+    <div class="card">
+      <h2>Nástroj a geometrie záběru</h2>
+      <div class="segmented">
+        <button class="seg-btn active" id="millInsStd" onclick="setMillInsert('standard')">Přímé ostří (κr)</button>
+        <button class="seg-btn" id="millInsRnd" onclick="setMillInsert('round')">Kruhové (RDMT)</button>
+      </div>
+      <div class="grid-2">
+        <div><label>Čelní průměr Dc (mm)</label><input type="number" id="millDc" value="50" oninput="calcMilling()"></div>
+        <div><label>Počet zubů z</label><input type="number" id="millZ" value="4" oninput="calcMilling()"></div>
+      </div>
+      <div id="millStdRow" class="grid-2">
+        <div><label>Úhel κr (°)</label><input type="number" id="millKr" value="45" oninput="calcMilling()"></div>
+        <div><label>Hloubka ap (mm)</label><input type="number" id="millAp" value="2.0" oninput="calcMilling()"></div>
+      </div>
+      <div id="millRndRow" class="grid-2" style="display: none;">
+        <div><label>Průměr plátku iC (mm)</label><input type="number" id="millIc" value="12" oninput="calcMilling()"></div>
+        <div><label>Hloubka ap (mm)</label><input type="number" id="millApRnd" value="2.0" oninput="calcMilling()"></div>
+      </div>
+      <div class="form-group">
+        <label>Šířka záběru ae (mm)</label>
+        <input type="number" id="millAe" value="10" oninput="calcMilling()">
+      </div>
+      <div class="chips">
+        <div class="chip" onclick="setMillAeRatio(0.1)">10%</div>
+        <div class="chip" onclick="setMillAeRatio(0.25)">25%</div>
+        <div class="chip" onclick="setMillAeRatio(0.5)">50%</div>
+        <div class="chip" onclick="setMillAeRatio(0.75)">75%</div>
+        <div class="chip" onclick="setMillAeRatio(1.0)">100%</div>
+      </div>
+      <div class="row row-bold"><span>Efektivní průměr Deff:</span><span class="val-cyan" id="millDeff">50.00 mm</span></div>
+      <hr>
+      <label>Typ dráhy & Interpolace:</label>
+      <div class="segmented">
+        <button class="seg-btn active" id="millPathLine" onclick="setMillPath('line')">Přímka</button>
+        <button class="seg-btn" id="millPathHole" onclick="setMillPath('internalHole')">Díra</button>
+        <button class="seg-btn" id="millPathShaft" onclick="setMillPath('externalShaft')">Čep</button>
+      </div>
+      <div id="millDwBox" class="form-group" style="display: none;">
+        <label id="millDwLabel">Průměr díry D (mm)</label>
+        <input type="number" id="millDw" value="100" oninput="calcMilling()">
+      </div>
     </div>
-    <div class="row"><span>Horní úchylka (es):</span><span class="val-amber" id="shaftEs"></span></div>
-    <div class="row"><span>Střed tolerančního pole:</span><span id="shaftMid"></span></div>
-    <div class="row"><span>Dolní úchylka (ei):</span><span class="val-amber" id="shaftEi"></span></div>
-    <hr>
-    <div class="row row-bold"><span>Max. rozměr dmax:</span><span id="shaftMax"></span></div>
-    <div class="row"><span>Střední rozměr dstř:</span><span id="shaftMidMm"></span></div>
-    <div class="row row-bold"><span>Min. rozměr dmin:</span><span id="shaftMin"></span></div>
+
+    <div class="card card-cyan">
+      <div class="grid-2">
+        <div><label>Efektivní vc (m/min)</label><input type="number" id="millVc" oninput="calcMilling(true)"></div>
+        <div><label>Otáčky n (ot/min)</label><input type="number" id="millN" oninput="calcMillingN()"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Tl. třísky hex (mm)</label><input type="number" id="millHex" value="0.12" oninput="calcMilling()"></div>
+        <div><label>Posuv na zub fz (mm/z)</label><input type="number" id="millFz" oninput="calcMillingFz()"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Posuv na břitu vf (mm/min)</label><input type="text" id="millVf" readonly></div>
+        <div><label>Posuv CNC vf,prog (mm/min)</label><input type="text" id="millVfProg" readonly style="color:#22d3ee; font-weight:bold;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row row-bold">
+        <span>Strojní čas:</span>
+        <span class="val-orange" id="millTime">0 s</span>
+      </div>
+      <div class="grid-2" style="margin-top: 8px;">
+        <div><label>Délka dráhy L (mm)</label><input type="number" id="millLength" value="200" oninput="calcMilling()"></div>
+        <div style="align-self: flex-end; padding-bottom: 8px;"><span id="millTimeSec" style="font-size:0.8rem; color:#94a3b8;"></span></div>
+      </div>
+    </div>
   </div>
 
-  <!-- VÝSLEDEK LÍCOVÁNÍ -->
-  <div class="card">
-    <div class="header-row">
-      <span style="color: #94a3b8; font-size: 0.9rem;">Výsledné lícování dvojice:</span>
-      <span class="fit-badge" id="fitBadge"></span>
+  <!-- ==================== 2. SOUSTRUŽENÍ ==================== -->
+  <div id="soustruzeni" class="tab-content">
+    <div class="card">
+      <h2>Soustružnický nůž & korekce</h2>
+      <div class="segmented">
+        <button class="seg-btn active" id="turnInsStd" onclick="setTurnInsert('standard')">Běžná VBD (κr)</button>
+        <button class="seg-btn" id="turnInsRnd" onclick="setTurnInsert('round')">Kruhová (RCMT)</button>
+      </div>
+      <div id="turnStdRow" class="grid-2">
+        <div><label>Úhel nastavení κr (°)</label><input type="number" id="turnKr" value="95" oninput="calcTurning()"></div>
+        <div><label>Rádius špičky rε (mm)</label><input type="number" id="turnRe" value="0.8" oninput="calcTurning()"></div>
+      </div>
+      <div id="turnRndRow" class="form-group" style="display: none;">
+        <label>Průměr plátku iC (mm)</label>
+        <input type="number" id="turnIc" value="12.0" oninput="calcTurning()">
+      </div>
+      <hr>
+      <div class="slider-box">
+        <div class="slider-row">
+          <span>Korekce trvanlivosti kvT: <b id="valKvT">1.00</b></span>
+          <input type="checkbox" id="chkKvT" onchange="calcTurningCoeffs()" style="width: auto;">
+        </div>
+      </div>
+      <div class="slider-box">
+        <div class="slider-row">
+          <span>Kůra odlitku/výkovku: <b id="valSkin">0.75</b></span>
+          <input type="checkbox" id="chkSkin" onchange="calcTurningCoeffs()" style="width: auto;">
+        </div>
+      </div>
+      <div class="slider-box">
+        <div class="slider-row">
+          <span>Přerušovaný řez: <b id="valInter">0.85</b></span>
+          <input type="checkbox" id="chkInter" onchange="calcTurningCoeffs()" style="width: auto;">
+        </div>
+      </div>
+      <div class="row row-bold" style="margin-top: 6px;">
+        <span>Celkový koeficient k:</span><span class="val-amber" id="turnCombinedK">1.00</span>
+      </div>
     </div>
-    <hr>
-    <div id="fitDetails"></div>
+
+    <div class="card card-amber">
+      <div class="grid-2">
+        <div><label>Průměr D (mm)</label><input type="number" id="turnD" value="50" oninput="calcTurning()"></div>
+        <div><label>Hloubka ap (mm)</label><input type="number" id="turnAp" value="2.0" oninput="calcTurning()"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Korigované vc (m/min)</label><input type="number" id="turnVc" oninput="calcTurning(true)"></div>
+        <div><label>Otáčky n (ot/min)</label><input type="number" id="turnN" oninput="calcTurningN()"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Posuv fn (mm/ot)</label><input type="number" id="turnFn" value="0.2" oninput="calcTurning()"></div>
+        <div><label>Posuv vf (mm/min)</label><input type="text" id="turnVf" readonly></div>
+      </div>
+      <div class="row row-bold">
+        <span>Úběr materiálu Q:</span><span class="val-green" id="turnMrr">0.0 cm³/min</span>
+      </div>
+      <div class="row">
+        <span>Teoretická drsnost Rz / Ra:</span><span id="turnRoughness">0.0 / 0.0 µm</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row row-bold"><span>Strojní čas:</span><span class="val-orange" id="turnTime">0 s</span></div>
+      <div class="form-group" style="margin-top: 6px;">
+        <label>Délka soustružení L (mm)</label>
+        <input type="number" id="turnL" value="100" oninput="calcTurning()">
+      </div>
+    </div>
   </div>
+
+  <!-- ==================== 3. VRTÁNÍ ==================== -->
+  <div id="vrtani" class="tab-content">
+    <div class="card">
+      <h2>Parametry vrtáku</h2>
+      <label>Vrcholový úhel vrtáku σ:</label>
+      <div class="chips">
+        <div class="chip" onclick="setDrillAngle(118)">118° (HSS)</div>
+        <div class="chip" onclick="setDrillAngle(120)">120°</div>
+        <div class="chip" onclick="setDrillAngle(135)">135°</div>
+        <div class="chip active" id="chipSigma140" onclick="setDrillAngle(140)">140° (VHM)</div>
+        <div class="chip" onclick="setDrillAngle(180)">180° (Ploché)</div>
+      </div>
+      <div class="grid-2">
+        <div><label>Průměr D (mm)</label><input type="number" id="drillD" value="10.0" oninput="calcDrilling()"></div>
+        <div><label>Úhel σ (°)</label><input type="number" id="drillSigma" value="140" oninput="calcDrilling()"></div>
+      </div>
+      <div class="row"><span>Výška špičky (h):</span><span class="val-amber" id="drillPointH">1.82 mm</span></div>
+    </div>
+
+    <div class="card card-cyan">
+      <div class="grid-2">
+        <div><label>Řezná rychlost vc (m/min)</label><input type="number" id="drillVc" oninput="calcDrilling(true)"></div>
+        <div><label>Otáčky n (ot/min)</label><input type="number" id="drillN" oninput="calcDrillingN()"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Posuv fn (mm/ot)</label><input type="number" id="drillFn" value="0.18" oninput="calcDrilling()"></div>
+        <div><label>Posuv vf (mm/min)</label><input type="text" id="drillVf" readonly></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Hloubka díry L (mm)</label><input type="number" id="drillDepth" value="30.0" oninput="calcDrilling()"></div>
+        <div>
+          <label>Druh otvoru</label>
+          <select id="drillHoleType" onchange="calcDrilling()">
+            <option value="through">Průchozí</option>
+            <option value="blind">Slepá</option>
+          </select>
+        </div>
+      </div>
+      <hr>
+      <div class="row row-bold"><span>Doporučený zdvih vrtání:</span><span class="val-cyan" id="drillTotalDepth">33.32 mm</span></div>
+      <div class="row"><span>Poměr hloubky L/D:</span><span id="drillLd">3.0 × D</span></div>
+      <div class="row"><span>Objemový úběr Q:</span><span class="val-green" id="drillMrr">0.0 cm³/min</span></div>
+      <div class="row row-bold"><span>Strojní čas:</span><span class="val-orange" id="drillTime">0 s</span></div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. ZÁVITOVÁNÍ ==================== -->
+  <div id="zavitovani" class="tab-content">
+    <div class="card">
+      <h2>Výběr závitu z databáze</h2>
+      <div class="form-group">
+        <label>1. Profil závitu (Typ)</label>
+        <select id="tapType" onchange="onTapTypeChanged()">
+          <option value="M">M – Metrický standardní</option>
+          <option value="MF">MF – Metrický jemný</option>
+          <option value="G">G – Trubkový válcový (BSPP)</option>
+          <option value="UNC">UNC – Americký hrubý</option>
+          <option value="UNF">UNF – Americký jemný</option>
+          <option value="UNEF">UNEF – Americký extra jemný</option>
+          <option value="BSW">BSW – Whitworth hrubý</option>
+          <option value="BSF">BSF – Whitworth jemný</option>
+          <option value="PG">PG – Pancéřový</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div><label>2. Velikost závitu</label><select id="tapSize" onchange="onTapSizeChanged()"></select></div>
+        <div><label>3. Stoupání P (mm)</label><select id="tapPitch" onchange="onTapPitchChanged()"></select></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Jmenovitý Ø D (mm)</label><input type="number" id="tapDia" value="10.0" oninput="calcTapping()"></div>
+        <div><label>Hloubka závitu (mm)</label><input type="number" id="tapDepth" value="30.0" oninput="calcTapping()"></div>
+      </div>
+    </div>
+
+    <div class="card card-amber">
+      <div class="grid-2">
+        <div><label>Řezná rychlost vc (m/min)</label><input type="number" id="tapVc" value="15" oninput="calcTapping()"></div>
+        <div><label>Otáčky n (ot/min)</label><input type="text" id="tapN" readonly></div>
+      </div>
+      <div class="row row-bold"><span>Minutový posuv (fmin = n × P):</span><span class="val-cyan" id="tapFeedMin">0 mm/min</span></div>
+      <div class="row row-bold"><span>Čas závitování Tc:</span><span class="val-orange" id="tapTime">0 s</span></div>
+    </div>
+
+    <div class="card card-cyan">
+      <h3 style="margin-top:0; color:#4ade80; font-size:1rem;">Doporučené průměry vrtáku</h3>
+      <div class="row"><span>Vrták pro ŘEZANÝ závit:</span><span class="val-cyan" id="tapDrillCut">Ø 8.5 mm</span></div>
+      <div class="row"><span>Vrták pro TVÁŘENÝ závit:</span><span class="val-amber" id="tapDrillForm">Ø 9.35 mm</span></div>
+      <hr>
+      <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">Délka řezného kužele (náběhu):</div>
+      <div class="row"><span>Tvar C (2 - 3 chody):</span><span id="tapLeadC">-</span></div>
+      <div class="row"><span>Tvar B (3.5 - 5 chodů):</span><span id="tapLeadB">-</span></div>
+    </div>
+  </div>
+
+  <!-- ==================== 5. ISO TOLERANCE ==================== -->
+  <div id="iso" class="tab-content active">
+    <div class="card">
+      <label>Jmenovitý rozměr D (1 - 1000 mm)</label>
+      <input type="number" id="isoNominal" value="90" min="1" max="1000" step="any" oninput="calcIso()">
+
+      <label style="margin-top: 10px;">Rychlý výběr uložení:</label>
+      <div class="chips" id="isoPresets"></div>
+
+      <div class="grid-2">
+        <div><label>Poloha DÍRY</label><select id="isoHoleL" onchange="calcIso()"></select></div>
+        <div><label>Stupeň IT díry</label><select id="isoHoleIt" onchange="calcIso()"></select></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Poloha HŘÍDELE</label><select id="isoShaftL" onchange="calcIso()"></select></div>
+        <div><label>Stupeň IT hřídele</label><select id="isoShaftIt" onchange="calcIso()"></select></div>
+      </div>
+    </div>
+
+    <!-- KARTA DÍRY -->
+    <div class="card card-cyan">
+      <div class="header-row">
+        <span style="font-weight: bold; color: #22d3ee;" id="isoHoleTitle">DÍRA: Ø 90.00 K7</span>
+        <span class="badge badge-cyan" id="isoHoleBadge">IT7 = 35.0 µm</span>
+      </div>
+      <div class="row"><span>Horní úchylka (ES):</span><span class="val-cyan" id="isoHoleEs"></span></div>
+      <div class="row"><span>Střed tolerančního pole:</span><span id="isoHoleMid"></span></div>
+      <div class="row"><span>Dolní úchylka (EI):</span><span class="val-cyan" id="isoHoleEi"></span></div>
+      <hr>
+      <div class="row row-bold"><span>Max. rozměr Dmax:</span><span id="isoHoleMax"></span></div>
+      <div class="row"><span>Střední rozměr Dstř:</span><span id="isoHoleMidMm"></span></div>
+      <div class="row row-bold"><span>Min. rozměr Dmin:</span><span id="isoHoleMin"></span></div>
+    </div>
+
+    <!-- KARTA HŘÍDELE -->
+    <div class="card card-amber">
+      <div class="header-row">
+        <span style="font-weight: bold; color: #fbbf24;" id="isoShaftTitle">HŘÍDEL: Ø 90.00 h6</span>
+        <span class="badge badge-amber" id="isoShaftBadge">IT6 = 22.0 µm</span>
+      </div>
+      <div class="row"><span>Horní úchylka (es):</span><span class="val-amber" id="isoShaftEs"></span></div>
+      <div class="row"><span>Střed tolerančního pole:</span><span id="isoShaftMid"></span></div>
+      <div class="row"><span>Dolní úchylka (ei):</span><span class="val-amber" id="isoShaftEi"></span></div>
+      <hr>
+      <div class="row row-bold"><span>Max. rozměr dmax:</span><span id="isoShaftMax"></span></div>
+      <div class="row"><span>Střední rozměr dstř:</span><span id="isoShaftMidMm"></span></div>
+      <div class="row row-bold"><span>Min. rozměr dmin:</span><span id="isoShaftMin"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="header-row">
+        <span style="color: #94a3b8; font-size: 0.88rem;">Výsledné lícování:</span>
+        <span class="badge" id="isoFitBadge"></span>
+      </div>
+      <hr>
+      <div id="isoFitDetails"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. TVRDOST ==================== -->
+  <div id="tvrdost" class="tab-content">
+    <div class="card">
+      <h2>Převodník tvrdosti a pevnosti (ISO 18265)</h2>
+      <div class="segmented">
+        <button class="seg-btn active" id="btnRm" onclick="setHardnessUnit('rm')">MPa (Rm)</button>
+        <button class="seg-btn" id="btnHb" onclick="setHardnessUnit('hb')">HB</button>
+        <button class="seg-btn" id="btnHv" onclick="setHardnessUnit('hv')">HV</button>
+        <button class="seg-btn" id="btnHrc" onclick="setHardnessUnit('hrc')">HRC</button>
+      </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label id="hardInputLabel">Zadaná pevnost v tahu Rm (MPa):</label>
+        <input type="number" id="hardVal" value="600" oninput="calcHardness()">
+      </div>
+    </div>
+
+    <div class="card card-cyan">
+      <h3 style="margin-top:0; color:#22d3ee; font-size:0.95rem;">Přepočtené ekvivalenty pro oceli:</h3>
+      <div class="row row-bold"><span>Pevnost v tahu (Rm):</span><span id="resRm">600 MPa</span></div>
+      <hr>
+      <div class="row"><span>Tvrdost dle Brinella (HB):</span><span class="val-amber" id="resHb">179 HB</span></div>
+      <hr>
+      <div class="row"><span>Tvrdost dle Vickerse (HV):</span><span class="val-green" id="resHv">185 HV</span></div>
+      <hr>
+      <div class="row"><span>Tvrdost dle Rockwella (HRC):</span><span class="val-orange" id="resHrc">< 20 HRC</span></div>
+    </div>
+  </div>
+
+  <!-- ==================== 7. O NÁS ==================== -->
+  <div id="onas" class="tab-content">
+    <div class="card" style="text-align: center; padding: 24px 16px;">
+      <h1 style="color: #22d3ee; margin: 0 0 6px 0; font-size: 1.5rem;">PRECITOOL CZ</h1>
+      <p style="color: #fbbf24; font-weight: bold; margin: 0 0 16px 0;">Vždy to správné řešení</p>
+      <p style="font-size: 0.88rem; line-height: 1.5; color: #cbd5e1; text-align: justify;">
+        Tato strojírenská kalkulačka vznikla pro technology, CNC programátory a operátory. Umožňuje přesný výpočet řezných podmínek, ztenčení třísky, korekcí trvanlivosti, závitování, ISO tolerancí a převodů tvrdosti.
+      </p>
+      <div style="background: rgba(14, 30, 76, 0.9); border: 1px solid rgba(34, 211, 238, 0.4); border-radius: 8px; padding: 14px; margin-top: 16px;">
+        <div style="font-size: 0.8rem; color: #94a3b8;">Oficiální webové stránky:</div>
+        <div style="font-size: 1.15rem; font-weight: bold; color: #22d3ee; margin: 4px 0 10px 0;">www.precitool.cz</div>
+        <button class="btn" onclick="copyWebLink()">Zkopírovat odkaz webu</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
+// ============================================================================
+// DATABÁZE MATERIÁLŮ (WMG)
+// ============================================================================
+const globalMaterials = [
+  { code: 'P1.1', group: 'P', description: 'oceli se zl. obr. se zvýšeným obsahem S', hardness: '< 240HB - ≤ 830 Mpa', kvg: 1.33, examples: 'AISI 1108, EN 15S22, DIN 1.0723, ČSN 11120' },
+  { code: 'P1.2', group: 'P', description: 'oceli se zl. obr. se zvýšeným obsahem S a P', hardness: '< 180HB - ≤ 620 Mpa', kvg: 1.49, examples: 'AISI 1211, EN 11SMn30, DIN 1.0715, ČSN 11109' },
+  { code: 'P1.3', group: 'P', description: 'oceli se zl. obr. s přídavkem Pb nebo Bi', hardness: '< 180HB - ≤ 550 Mpa', kvg: 1.53, examples: 'AISI 12L13, EN 11SMnPb30, DIN 1.0718, ČSN 12110' },
+  { code: 'P2.1', group: 'P', description: 'uhlíkové oceli s obsahem C < 0.25%', hardness: '< 180HB - ≤ 620 Mpa', kvg: 1.14, examples: 'AISI 1015, EN C15, DIN 1.0401, ČSN 11301' },
+  { code: 'P2.2', group: 'P', description: 'uhlíkové oceli s obsahem C 0.25% až 0.55%', hardness: '< 240HB - ≤ 830 Mpa', kvg: 1.00, examples: 'AISI 1030, EN C30, DIN 1.0528, ČSN 12050' },
+  { code: 'P2.3', group: 'P', description: 'uhlíkové oceli s obsahem C > 0.55%', hardness: '< 300HB - ≤ 1030 Mpa', kvg: 0.89, examples: 'AISI 1060, EN C60, DIN 1.0601, ČSN 12061' },
+  { code: 'P3.1', group: 'P', description: 'slitinové oceli žíhané', hardness: '< 180HB - ≤ 620 Mpa', kvg: 0.92, examples: 'AISI 5015, EN 16Mo3, DIN 1.5415, ČSN 15020' },
+  { code: 'P3.2', group: 'P', description: 'slitinové oceli zušlechtěné a temperované', hardness: '180 – 260 HB - > 620 ≤ 900 Mpa', kvg: 0.74, examples: 'AISI 4140, EN 42CrMo4, DIN 1.7225, ČSN 15142' },
+  { code: 'P3.3', group: 'P', description: 'slitinové oceli kalené a zušlechtěné', hardness: '260 - 360HB - > 900 ≤ 1240 Mpa', kvg: 0.63, examples: 'AISI 4140, EN 42CrMo4, DIN 1.7225, ČSN 15142' },
+  { code: 'P4.1', group: 'P', description: 'vysoce legované nástrojové oceli žíhané', hardness: '< 26 HRC - ≤ 900 Mpa', kvg: 0.55, examples: 'AISI D2, DIN 1.2379, ČSN 19573' },
+  { code: 'P4.2', group: 'P', description: 'vysoce legované nástrojové oceli zušlechtěné', hardness: '26 – 39 HRC', kvg: 0.47, examples: 'AISI D2, DIN 1.2379, ČSN 19573' },
+  { code: 'P4.3', group: 'P', description: 'vysoce legované oceli kalené', hardness: '39 – 45 HRC', kvg: 0.38, examples: 'AISI D2, DIN 1.2379, ČSN 19573' },
+  { code: 'M1.1', group: 'M', description: 'feritická korozivzdorná ocel nízká tvrdost', hardness: '< 160 HB', kvg: 1.22, examples: 'AISI S429, DIN 1.4001' },
+  { code: 'M2.2', group: 'M', description: 'martenzitická nerez zušlechtěná', hardness: '200 – 260 HB', kvg: 0.90, examples: 'AISI 420, DIN 1.4021, ČSN 17022' },
+  { code: 'M3.2', group: 'M', description: 'austenitická korozivzdorná ocel standardní', hardness: '< 200 HB', kvg: 1.00, examples: 'AISI 304, DIN 1.4301, ČSN 17240' },
+  { code: 'M3.3', group: 'M', description: 'austenitická nerez legovaná (A4)', hardness: '< 200 HB', kvg: 0.88, examples: 'AISI 316, DIN 1.4401, ČSN 17346' },
+  { code: 'M4.1', group: 'M', description: 'Duplex korozivzdorná ocel', hardness: '< 230 HB', kvg: 0.88, examples: 'AISI 329, DIN 1.4460, ČSN 17344' },
+  { code: 'K1.2', group: 'K', description: 'šedá litina s lupínkovým grafitem', hardness: '180 – 240 HB', kvg: 1.00, examples: 'EN-GJL-250, DIN 0.6025, ČSN 422425' },
+  { code: 'K3.1', group: 'K', description: 'tvárná litina s kuličkovým grafitem feritická', hardness: '< 180 HB', kvg: 1.23, examples: 'EN-GJS-400-15, DIN 0.7040, ČSN 422304' },
+  { code: 'K3.2', group: 'K', description: 'tvárná litina perlitická', hardness: '180 – 220 HB', kvg: 1.00, examples: 'EN-GJS-500-7, DIN 0.7050, ČSN 422305' },
+  { code: 'N1.2', group: 'N', description: 'slitiny hliníku tvářené Si < 1%', hardness: '45 – 120 HB', kvg: 1.00, examples: 'EN AW-2024, Dural, ČSN 424201' },
+  { code: 'N1.3', group: 'N', description: 'slitiny hliníku vysoce pevné', hardness: '120 – 160 HB', kvg: 0.67, examples: 'EN AW-7075, Certal, ČSN 424222' },
+  { code: 'N3.2', group: 'N', description: 'mosazi a bronzy se snadnou obrobitelností', hardness: '< 150 HB', kvg: 1.15, examples: 'CuZn39Pb3, DIN 2.0401, ČSN 423223' },
+  { code: 'S2.2', group: 'S', description: 'slitiny na bázi Ni vytvrzené', hardness: '260 – 420 HB', kvg: 1.00, examples: 'Inconel 718, Nimonic 80A, DIN 2.4668' },
+  { code: 'S4.2', group: 'S', description: 'slitiny titanu', hardness: '220 – 360 HB', kvg: 1.00, examples: 'Ti-6Al-4V (Grade 5), DIN 3.7165' },
+  { code: 'H3.1', group: 'H', description: 'kalená ocel nižší tvrdost', hardness: '< 48 HRC', kvg: 1.00, examples: 'AISI 4135, DIN 1.7220' },
+  { code: 'H4.1', group: 'H', description: 'kalená ocel vyšší tvrdost', hardness: '55 – 60 HRC', kvg: 0.64, examples: '100MnCrW4, DIN 1.2510, ČSN 19413' },
+];
+
+let curMat = globalMaterials[4]; // Výchozí P2.2
+
+function initWmg() {
+  const sel = document.getElementById('wmgSelect');
+  sel.innerHTML = '';
+  globalMaterials.forEach((m, idx) => {
+    sel.add(new Option(`${m.code} - ${m.description} (${m.hardness})`, idx));
+  });
+  sel.value = 4;
+  updateWmgInfo();
+}
+
+function updateWmgInfo() {
+  document.getElementById('wmgKvgBadge').innerText = `kvG = ${curMat.kvg.toFixed(2)}`;
+  document.getElementById('wmgDesc').innerText = curMat.description;
+  document.getElementById('wmgHardness').innerText = curMat.hardness;
+  document.getElementById('wmgExamples').innerText = curMat.examples;
+  
+  // Přepočet modulů
+  const baseVc = parseFloat(document.getElementById('baseVc').value) || 180;
+  document.getElementById('millVc').value = (baseVc * curMat.kvg).toFixed(1);
+  calcMilling();
+  calcTurningCoeffs();
+  calcDrilling();
+  calcTapping();
+}
+
+function onMaterialSelected() {
+  const idx = parseInt(document.getElementById('wmgSelect').value);
+  curMat = globalMaterials[idx];
+  updateWmgInfo();
+}
+
+function onBaseVcChanged() {
+  const baseVc = parseFloat(document.getElementById('baseVc').value) || 180;
+  document.getElementById('millVc').value = (baseVc * curMat.kvg).toFixed(1);
+  calcMilling();
+  calcTurningCoeffs();
+}
+
+// Navigace v záložkách
+function openTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+  if (btn) btn.classList.add('active');
+}
+
+// ============================================================================
+// 1. MODUL: FRÉZOVÁNÍ
+// ============================================================================
+let millInsert = 'standard';
+let millPath = 'line';
+
+function setMillInsert(type) {
+  millInsert = type;
+  document.getElementById('millInsStd').classList.toggle('active', type === 'standard');
+  document.getElementById('millInsRnd').classList.toggle('active', type === 'round');
+  document.getElementById('millStdRow').style.display = type === 'standard' ? 'grid' : 'none';
+  document.getElementById('millRndRow').style.display = type === 'round' ? 'grid' : 'none';
+  calcMilling();
+}
+
+function setMillPath(type) {
+  millPath = type;
+  document.getElementById('millPathLine').classList.toggle('active', type === 'line');
+  document.getElementById('millPathHole').classList.toggle('active', type === 'internalHole');
+  document.getElementById('millPathShaft').classList.toggle('active', type === 'externalShaft');
+  document.getElementById('millDwBox').style.display = type === 'line' ? 'none' : 'block';
+  document.getElementById('millDwLabel').innerText = type === 'internalHole' ? 'Průměr díry D (mm)' : 'Průměr čepu D (mm)';
+  calcMilling();
+}
+
+function setMillAeRatio(ratio) {
+  const dc = parseFloat(document.getElementById('millDc').value) || 50;
+  document.getElementById('millAe').value = (dc * ratio).toFixed(1);
+  calcMilling();
+}
+
+function calcMilling(fromVc = false) {
+  const dc = parseFloat(document.getElementById('millDc').value) || 50;
+  const z = parseInt(document.getElementById('millZ').value) || 4;
+  const ae = parseFloat(document.getElementById('millAe').value) || 10;
+  const hex = parseFloat(document.getElementById('millHex').value) || 0.12;
+  const dw = parseFloat(document.getElementById('millDw').value) || 100;
+  const L = parseFloat(document.getElementById('millLength').value) || 200;
+
+  let deff = dc;
+  let sinKr = 1.0;
+
+  if (millInsert === 'standard') {
+    const kr = parseFloat(document.getElementById('millKr').value) || 45;
+    const ap = parseFloat(document.getElementById('millAp').value) || 2;
+    const rad = kr * Math.PI / 180;
+    deff = (kr < 90 && ap > 0 && Math.tan(rad) > 0) ? (dc + (2 * ap) / Math.tan(rad)) : dc;
+    sinKr = Math.sin(rad);
+  } else {
+    const ic = parseFloat(document.getElementById('millIc').value) || 12;
+    const ap = parseFloat(document.getElementById('millApRnd').value) || 2;
+    if (ic > 0 && ap > 0) {
+      const effAp = Math.min(ap, ic / 2);
+      const under = effAp * (ic - effAp);
+      if (under >= 0) {
+        const deltaR = Math.sqrt(under);
+        deff = dc + 2 * deltaR;
+        sinKr = Math.min(1.0, (2 * deltaR) / ic);
+      }
+    }
+  }
+
+  document.getElementById('millDeff').innerText = `${deff.toFixed(2)} mm`;
+
+  let kRad = 1.0;
+  if (deff > 0 && ae > 0 && (ae / deff) < 0.5) {
+    const r = ae / deff;
+    kRad = 2.0 * Math.sqrt(r * (1.0 - r));
+  }
+
+  const factor = Math.max(0.01, sinKr * kRad);
+  const fz = hex / factor;
+  document.getElementById('millFz').value = fz.toFixed(3);
+
+  let vc = parseFloat(document.getElementById('millVc').value) || 180;
+  let n = deff > 0 ? (vc * 1000) / (Math.PI * deff) : 0;
+  document.getElementById('millN').value = Math.round(n);
+
+  const vfEdge = n * fz * z;
+  document.getElementById('millVf').value = vfEdge.toFixed(1);
+
+  let vfProg = vfEdge;
+  if (millPath === 'internalHole' && dw > deff) {
+    vfProg = vfEdge * ((dw - deff) / dw);
+  } else if (millPath === 'externalShaft' && dw > 0) {
+    vfProg = vfEdge * ((dw + deff) / dw);
+  }
+  document.getElementById('millVfProg').value = vfProg.toFixed(1);
+
+  const timeMin = (L > 0 && vfProg > 0) ? (L / vfProg) : 0;
+  const totalSec = Math.round(timeMin * 60);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  document.getElementById('millTime').innerText = m === 0 ? `${s} s` : `${m} min ${s} s`;
+}
+
+function calcMillingN() {
+  const n = parseFloat(document.getElementById('millN').value) || 0;
+  const dc = parseFloat(document.getElementById('millDc').value) || 50;
+  if (n > 0 && dc > 0) {
+    const vc = (Math.PI * dc * n) / 1000;
+    document.getElementById('millVc').value = vc.toFixed(1);
+    calcMilling();
+  }
+}
+
+function calcMillingFz() {
+  const fz = parseFloat(document.getElementById('millFz').value) || 0.1;
+  const kr = (parseFloat(document.getElementById('millKr').value) || 45) * Math.PI / 180;
+  document.getElementById('millHex').value = (fz * Math.sin(kr)).toFixed(3);
+  calcMilling();
+}
+
+// ============================================================================
+// 2. SOUSTRUŽENÍ
+// ============================================================================
+let turnInsert = 'standard';
+
+function setTurnInsert(type) {
+  turnInsert = type;
+  document.getElementById('turnInsStd').classList.toggle('active', type === 'standard');
+  document.getElementById('turnInsRnd').classList.toggle('active', type === 'round');
+  document.getElementById('turnStdRow').style.display = type === 'standard' ? 'grid' : 'none';
+  document.getElementById('turnRndRow').style.display = type === 'round' ? 'block' : 'none';
+  calcTurning();
+}
+
+function calcTurningCoeffs() {
+  const chkT = document.getElementById('chkKvT').checked;
+  const chkSkin = document.getElementById('chkSkin').checked;
+  const chkInter = document.getElementById('chkInter').checked;
+
+  let k = curMat.kvg;
+  if (chkT) k *= 0.84;
+  if (chkSkin) k *= 0.75;
+  if (chkInter) k *= 0.85;
+
+  document.getElementById('turnCombinedK').innerText = k.toFixed(2);
+  const baseVc = parseFloat(document.getElementById('baseVc').value) || 220;
+  document.getElementById('turnVc').value = (baseVc * k).toFixed(1);
+  calcTurning();
+}
+
+function calcTurning(fromVc = false) {
+  const d = parseFloat(document.getElementById('turnD').value) || 50;
+  const ap = parseFloat(document.getElementById('turnAp').value) || 2;
+  const fn = parseFloat(document.getElementById('turnFn').value) || 0.2;
+  const vc = parseFloat(document.getElementById('turnVc').value) || 200;
+  const L = parseFloat(document.getElementById('turnL').value) || 100;
+  const re = parseFloat(document.getElementById('turnRe').value) || 0.8;
+
+  let n = d > 0 ? (vc * 1000) / (Math.PI * d) : 0;
+  document.getElementById('turnN').value = Math.round(n);
+
+  const vf = n * fn;
+  document.getElementById('turnVf').value = vf.toFixed(1);
+
+  const mrr = (vc * ap * fn);
+  document.getElementById('turnMrr').innerText = `${mrr.toFixed(1)} cm³/min`;
+
+  if (re > 0 && fn > 0) {
+    const rz = ((fn * fn) / (8 * re)) * 1000;
+    const ra = rz / 4;
+    document.getElementById('turnRoughness').innerText = `${rz.toFixed(1)} / ${ra.toFixed(2)} µm`;
+  }
+
+  const timeMin = (L > 0 && vf > 0) ? (L / vf) : 0;
+  const totalSec = Math.round(timeMin * 60);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  document.getElementById('turnTime').innerText = m === 0 ? `${s} s` : `${m} min ${s} s`;
+}
+
+function calcTurningN() {
+  const n = parseFloat(document.getElementById('turnN').value) || 0;
+  const d = parseFloat(document.getElementById('turnD').value) || 50;
+  if (n > 0 && d > 0) {
+    const vc = (Math.PI * d * n) / 1000;
+    document.getElementById('turnVc').value = vc.toFixed(1);
+    calcTurning();
+  }
+}
+
+// ============================================================================
+// 3. VRTÁNÍ
+// ============================================================================
+function setDrillAngle(deg) {
+  document.getElementById('drillSigma').value = deg;
+  if (deg === 180) document.getElementById('baseVc').value = '180';
+  else if (deg === 118) document.getElementById('baseVc').value = '30';
+  else document.getElementById('baseVc').value = '100';
+  calcDrilling();
+}
+
+function calcDrilling(fromVc = false) {
+  const d = parseFloat(document.getElementById('drillD').value) || 10;
+  const sigma = parseFloat(document.getElementById('drillSigma').value) || 140;
+  const fn = parseFloat(document.getElementById('drillFn').value) || 0.18;
+  const depth = parseFloat(document.getElementById('drillDepth').value) || 30;
+  const holeType = document.getElementById('drillHoleType').value;
+
+  let vc = parseFloat(document.getElementById('drillVc').value);
+  if (isNaN(vc) || !fromVc) {
+    vc = (parseFloat(document.getElementById('baseVc').value) || 100) * curMat.kvg;
+    document.getElementById('drillVc').value = vc.toFixed(1);
+  }
+
+  let n = d > 0 ? (vc * 1000) / (Math.PI * d) : 0;
+  document.getElementById('drillN').value = Math.round(n);
+
+  const vf = n * fn;
+  document.getElementById('drillVf').value = vf.toFixed(1);
+
+  let h = 0;
+  if (sigma < 180 && sigma > 0) {
+    const rad = (sigma / 2) * Math.PI / 180;
+    h = (d / 2) / Math.tan(rad);
+  }
+  document.getElementById('drillPointH').innerText = `${h.toFixed(2)} mm`;
+
+  const totalDepth = holeType === 'through' ? (depth + h + 1.5) : (depth + h);
+  document.getElementById('drillTotalDepth').innerText = `${totalDepth.toFixed(2)} mm`;
+  document.getElementById('drillLd').innerText = `${(depth / d).toFixed(1)} × D`;
+
+  const mrr = (Math.PI * d * d / 4) * (vf / 1000);
+  document.getElementById('drillMrr').innerText = `${mrr.toFixed(1)} cm³/min`;
+
+  const timeMin = (totalDepth > 0 && vf > 0) ? (totalDepth / vf) : 0;
+  const totalSec = Math.round(timeMin * 60);
+  document.getElementById('drillTime').innerText = `${totalSec} s`;
+}
+
+function calcDrillingN() {
+  const n = parseFloat(document.getElementById('drillN').value) || 0;
+  const d = parseFloat(document.getElementById('drillD').value) || 10;
+  if (n > 0 && d > 0) {
+    const vc = (Math.PI * d * n) / 1000;
+    document.getElementById('drillVc').value = vc.toFixed(1);
+    calcDrilling(true);
+  }
+}
+
+// ============================================================================
+// 4. ZÁVITOVÁNÍ (DATABÁZE 275 ŘÁDKŮ)
+// ============================================================================
+const excelRawData = "M|1|0.25|0,729 - 0,809|0.9|1.0;M|1.2|0.25|0,929 - 1,009|1.1|1.2;M|1.6|0.35|1,221 - 1,321|1.47|1.6;M|2|0.4|1,567 - 1,679|1.85|2.0;M|2.5|0.45|2,013 - 2,138|2.3|2.5;M|3|0.5|2,459 - 2,599|2.8|3.0;M|4|0.7|3,242 - 3,422|3.7|4.0;M|5|0.8|4,134 - 4,334|4.65|5.0;M|6|1.0|4,917 - 5,153|5.55|6.0;M|8|1.25|6,647 - 6,912|7.45|8.0;M|10|1.5|8,376 - 8,676|9.35|10.0;M|12|1.75|10,106 - 10,441|11.2|12.0;M|14|2.0|11,835 - 12,210|13|14.0;M|16|2.0|13,835 - 14,210|15|16.0;M|20|2.5|17,294 - 17,744|18.8|20.0;M|24|3.0|20,752 - 21,252|22.6|24.0;MF|8|1.0|6,917 - 7,153|7.55|8.0;MF|10|1.0|8,917 - 9,153|9.55|10.0;MF|10|1.25|8,647 - 8,912|9.4|10.0;MF|12|1.5|10,376 - 10,676|11.3|12.0;MF|16|1.5|14,376 - 14,676|15.3|16.0;G|1/8“ - 28|0.907|8,566 - 8,848|9.25|9.728;G|1/4“ - 19|1.337|11,445 - 11,89|12.5|13.157;G|1/2“ - 14|1.814|18,631 - 19,172|20|20.955;G|1“ - 11|2.309|30,291 - 30,931|32|33.249;UNC|1/4 - 20|1.27|4,976 - 5,268|5.75|6.35;UNC|3/8 - 16|1.588|7,805 - 8,164|8.8|9.525;UNC|1/2 - 13|1.954|10,584 - 11,013|11.8|12.7;UNF|1/4 – 28|0.907|5,367 - 5,588|5.95|6.35;UNF|1/2 – 20|1.27|11,326 - 11,608|12.1|12.7";
+
+let tapDatabase = [];
+
+function initTapping() {
+  tapDatabase = [];
+  excelRawData.split(';').forEach(row => {
+    const p = row.split('|');
+    if (p.length >= 6) {
+      tapDatabase.push({
+        type: p[0],
+        size: p[1],
+        pitch: parseFloat(p[2]) || 1.0,
+        drillCut: p[3],
+        drillForm: p[4],
+        dia: parseFloat(p[5]) || 10.0
+      });
+    }
+  });
+  onTapTypeChanged();
+}
+
+function onTapTypeChanged() {
+  const type = document.getElementById('tapType').value;
+  const sizeSel = document.getElementById('tapSize');
+  sizeSel.innerHTML = '';
+  const sizes = [...new Set(tapDatabase.filter(x => x.type === type).map(x => x.size))];
+  sizes.forEach(s => sizeSel.add(new Option(s, s)));
+  if (sizes.includes('10')) sizeSel.value = '10';
+  onTapSizeChanged();
+}
+
+function onTapSizeChanged() {
+  const type = document.getElementById('tapType').value;
+  const size = document.getElementById('tapSize').value;
+  const pitchSel = document.getElementById('tapPitch');
+  pitchSel.innerHTML = '';
+  const matches = tapDatabase.filter(x => x.type === type && x.size === size);
+  matches.forEach(m => pitchSel.add(new Option(`${m.pitch} mm`, m.pitch)));
+  onTapPitchChanged();
+}
+
+function onTapPitchChanged() {
+  const type = document.getElementById('tapType').value;
+  const size = document.getElementById('tapSize').value;
+  const pitch = parseFloat(document.getElementById('tapPitch').value);
+  const match = tapDatabase.find(x => x.type === type && x.size === size && Math.abs(x.pitch - pitch) < 0.01) || tapDatabase[0];
+  
+  document.getElementById('tapDia').value = match.dia;
+  document.getElementById('tapDrillCut').innerText = `Ø ${match.drillCut} mm`;
+  document.getElementById('tapDrillForm').innerText = match.drillForm !== '-' ? `Ø ${match.drillForm} mm` : 'Nelze';
+  
+  document.getElementById('tapLeadC').innerText = `${(2 * match.pitch).toFixed(2)} - ${(3 * match.pitch).toFixed(2)} mm`;
+  document.getElementById('tapLeadB').innerText = `${(3.5 * match.pitch).toFixed(2)} - ${(5 * match.pitch).toFixed(2)} mm`;
+  calcTapping();
+}
+
+function calcTapping() {
+  const d = parseFloat(document.getElementById('tapDia').value) || 10;
+  const p = parseFloat(document.getElementById('tapPitch').value) || 1.5;
+  const vc = parseFloat(document.getElementById('tapVc').value) || 15;
+  const depth = parseFloat(document.getElementById('tapDepth').value) || 30;
+
+  const n = d > 0 ? (vc * 1000) / (Math.PI * d) : 0;
+  document.getElementById('tapN').value = Math.round(n);
+
+  const fmin = n * p;
+  document.getElementById('tapFeedMin').innerText = `${fmin.toFixed(1)} mm/min`;
+
+  const timeSec = (n > 0 && p > 0) ? (depth / (p * n)) * 60 : 0;
+  document.getElementById('tapTime').innerText = `${timeSec.toFixed(1)} s`;
+}
+
+// ============================================================================
+// 5. ISO TOLERANCE (ISO 286)
+// ============================================================================
 const itTable = {
   1: [0.8, 1.0, 1.0, 1.2, 1.5, 1.5, 2.0, 2.5, 3.5, 4.5, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0],
   2: [1.2, 1.5, 1.5, 2.0, 2.5, 2.5, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0, 10.0, 11.0, 13.0, 15.0],
@@ -165,7 +886,7 @@ const holeDevsIT7 = {
   'p': [-6, -12, -15, -18, -22, -26, -32, -37, -43, -51, -56, -62, -67, -78, -88, -100],
 };
 
-const presets = [
+const isoPresets = [
   { name: 'H7/h6', hL: 'H', hI: 7, sL: 'h', sI: 6 },
   { name: 'H7/g6', hL: 'H', hI: 7, sL: 'g', sI: 6 },
   { name: 'H8/f7', hL: 'H', hI: 8, sL: 'f', sI: 7 },
@@ -198,21 +919,17 @@ function calcHole(d, letter, it) {
   const idx = getDiaRangeIndex(d);
   const itVal = itTable[it]?.[idx] || 21.0;
   const lower = letter.toLowerCase();
-
   if (letter === 'JS') return [itVal / 2, -itVal / 2];
   if (letter === 'H') return [itVal, 0];
-
   if (it === 7 && holeDevsIT7[lower]) {
     const es = holeDevsIT7[lower][idx];
     return [es, es - itVal];
   }
-
   const baseDev = shaftDevs[lower]?.[idx] || 0;
   if (['a','b','c','cd','d','e','ef','f','fg','g'].includes(lower)) {
     const ei = -baseDev;
     return [ei + itVal, ei];
   }
-
   let delta = 0;
   if (it >= 3 && it <= 8) {
     const itPrev = itTable[it - 1]?.[idx] || 0;
@@ -226,10 +943,8 @@ function calcShaft(d, letter, it) {
   const idx = getDiaRangeIndex(d);
   const itVal = itTable[it]?.[idx] || 13.0;
   const lower = letter.toLowerCase();
-
   if (lower === 'js') return [itVal / 2, -itVal / 2];
   if (lower === 'h') return [0, -itVal];
-
   const baseDev = shaftDevs[lower]?.[idx] || 0;
   if (['a','b','c','cd','d','e','ef','f','fg','g'].includes(lower)) {
     return [baseDev, baseDev - itVal];
@@ -238,126 +953,197 @@ function calcShaft(d, letter, it) {
   }
 }
 
-const holeSelect = document.getElementById('holeLetter');
-const shaftSelect = document.getElementById('shaftLetter');
-const holeItSelect = document.getElementById('holeIt');
-const shaftItSelect = document.getElementById('shaftIt');
-const nominalInput = document.getElementById('nominal');
+function initIso() {
+  const hSel = document.getElementById('isoHoleL');
+  const sSel = document.getElementById('isoShaftL');
+  const hIt = document.getElementById('isoHoleIt');
+  const sIt = document.getElementById('isoShaftIt');
+  const letters = ['A','B','C','CD','D','E','EF','F','FG','G','H','JS','J','K','M','N','P','R','S','T','U','V','X','Z','ZA','ZB','ZC'];
+  letters.forEach(l => {
+    hSel.add(new Option(l, l));
+    sSel.add(new Option(l.toLowerCase(), l.toLowerCase()));
+  });
+  for (let i = 1; i <= 16; i++) {
+    hIt.add(new Option(i, i));
+    sIt.add(new Option(i, i));
+  }
+  hSel.value = 'H';
+  hIt.value = 7;
+  sSel.value = 'h';
+  sIt.value = 6;
 
-const letters = ['A','B','C','CD','D','E','EF','F','FG','G','H','JS','J','K','M','N','P','R','S','T','U','V','X','Z','ZA','ZB','ZC'];
-letters.forEach(l => {
-  holeSelect.add(new Option(l, l));
-  shaftSelect.add(new Option(l.toLowerCase(), l.toLowerCase()));
-});
-for (let i = 1; i <= 16; i++) {
-  holeItSelect.add(new Option(i, i));
-  shaftItSelect.add(new Option(i, i));
+  const presetsDiv = document.getElementById('isoPresets');
+  isoPresets.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerText = p.name;
+    chip.onclick = () => {
+      hSel.value = p.hL;
+      hIt.value = p.hI;
+      sSel.value = p.sL;
+      sIt.value = p.sI;
+      calcIso();
+    };
+    presetsDiv.appendChild(chip);
+  });
+  calcIso();
 }
 
-holeSelect.value = 'K';
-holeItSelect.value = 7;
-shaftSelect.value = 'h';
-shaftItSelect.value = 6;
-
-const chipsDiv = document.getElementById('chips');
-presets.forEach(p => {
-  const chip = document.createElement('div');
-  chip.className = 'chip';
-  chip.innerText = p.name;
-  chip.onclick = () => {
-    holeSelect.value = p.hL;
-    holeItSelect.value = p.hI;
-    shaftSelect.value = p.sL;
-    shaftItSelect.value = p.sI;
-    update();
-  };
-  chipsDiv.appendChild(chip);
-});
-
-function fmt(n, decimals = 1, showSign = true) {
-  const sign = showSign && n >= 0 ? '+' : '';
+function fmtSign(n, decimals = 1) {
+  const sign = n >= 0 ? '+' : '';
   return `${sign}${n.toFixed(decimals)}`;
 }
 
-function update() {
-  let nom = parseFloat(nominalInput.value) || 30.0;
+function calcIso() {
+  let nom = parseFloat(document.getElementById('isoNominal').value) || 30.0;
   if (nom < 1) nom = 1;
   if (nom > 1000) nom = 1000;
 
-  const hL = holeSelect.value;
-  const hI = parseInt(holeItSelect.value);
-  const sL = shaftSelect.value;
-  const sI = parseInt(shaftItSelect.value);
-
-  document.querySelectorAll('.chip').forEach((c, idx) => {
-    const p = presets[idx];
-    c.classList.toggle('active', p.hL === hL && p.hI === hI && p.sL === sL && p.sI === sI);
-  });
+  const hL = document.getElementById('isoHoleL').value;
+  const hI = parseInt(document.getElementById('isoHoleIt').value);
+  const sL = document.getElementById('isoShaftL').value;
+  const sI = parseInt(document.getElementById('isoShaftIt').value);
 
   const [hEs, hEi] = calcHole(nom, hL, hI);
   const [sEs, sEi] = calcShaft(nom, sL, sI);
-
   const idx = getDiaRangeIndex(nom);
-  document.getElementById('holeTitle').innerText = `DÍRA: Ø ${nom.toFixed(2)} ${hL}${hI}`;
-  document.getElementById('holeItBadge').innerText = `IT${hI} = ${(itTable[hI]?.[idx] || 0).toFixed(1)} µm`;
-  document.getElementById('holeEs').innerText = `${fmt(hEs)} µm`;
-  document.getElementById('holeMid').innerText = `${fmt((hEs + hEi) / 2)} µm`;
-  document.getElementById('holeEi').innerText = `${fmt(hEi)} µm`;
-  document.getElementById('holeMax').innerText = `${(nom + hEs/1000).toFixed(3)} mm`;
-  document.getElementById('holeMidMm').innerText = `${(nom + (hEs+hEi)/2000).toFixed(3)} mm`;
-  document.getElementById('holeMin').innerText = `${(nom + hEi/1000).toFixed(3)} mm`;
 
-  document.getElementById('shaftTitle').innerText = `HŘÍDEL: Ø ${nom.toFixed(2)} ${sL}${sI}`;
-  document.getElementById('shaftItBadge').innerText = `IT${sI} = ${(itTable[sI]?.[idx] || 0).toFixed(1)} µm`;
-  document.getElementById('shaftEs').innerText = `${fmt(sEs)} µm`;
-  document.getElementById('shaftMid').innerText = `${fmt((sEs + sEi) / 2)} µm`;
-  document.getElementById('shaftEi').innerText = `${fmt(sEi)} µm`;
-  document.getElementById('shaftMax').innerText = `${(nom + sEs/1000).toFixed(3)} mm`;
-  document.getElementById('shaftMidMm').innerText = `${(nom + (sEs+sEi)/2000).toFixed(3)} mm`;
-  document.getElementById('shaftMin').innerText = `${(nom + sEi/1000).toFixed(3)} mm`;
+  document.getElementById('isoHoleTitle').innerText = `DÍRA: Ø ${nom.toFixed(2)} ${hL}${hI}`;
+  document.getElementById('isoHoleBadge').innerText = `IT${hI} = ${(itTable[hI]?.[idx] || 0).toFixed(1)} µm`;
+  document.getElementById('isoHoleEs').innerText = `${fmtSign(hEs)} µm`;
+  document.getElementById('isoHoleMid').innerText = `${fmtSign((hEs + hEi) / 2)} µm`;
+  document.getElementById('isoHoleEi').innerText = `${fmtSign(hEi)} µm`;
+  document.getElementById('isoHoleMax').innerText = `${(nom + hEs/1000).toFixed(3)} mm`;
+  document.getElementById('isoHoleMidMm').innerText = `${(nom + (hEs+hEi)/2000).toFixed(3)} mm`;
+  document.getElementById('isoHoleMin').innerText = `${(nom + hEi/1000).toFixed(3)} mm`;
+
+  document.getElementById('isoShaftTitle').innerText = `HŘÍDEL: Ø ${nom.toFixed(2)} ${sL}${sI}`;
+  document.getElementById('isoShaftBadge').innerText = `IT${sI} = ${(itTable[sI]?.[idx] || 0).toFixed(1)} µm`;
+  document.getElementById('isoShaftEs').innerText = `${fmtSign(sEs)} µm`;
+  document.getElementById('isoShaftMid').innerText = `${fmtSign((sEs + sEi) / 2)} µm`;
+  document.getElementById('isoShaftEi').innerText = `${fmtSign(sEi)} µm`;
+  document.getElementById('isoShaftMax').innerText = `${(nom + sEs/1000).toFixed(3)} mm`;
+  document.getElementById('isoShaftMidMm').innerText = `${(nom + (sEs+sEi)/2000).toFixed(3)} mm`;
+  document.getElementById('isoShaftMin').innerText = `${(nom + sEi/1000).toFixed(3)} mm`;
 
   const maxClearance = (nom + hEs/1000) - (nom + sEi/1000);
   const minClearance = (nom + hEi/1000) - (nom + sEs/1000);
-
-  const badge = document.getElementById('fitBadge');
-  const details = document.getElementById('fitDetails');
+  const badge = document.getElementById('isoFitBadge');
+  const details = document.getElementById('isoFitDetails');
 
   if (minClearance < 0 && maxClearance > 0) {
     badge.innerText = 'Přechodné uložení';
-    badge.style.color = '#fbbf24';
-    badge.style.borderColor = 'rgba(251, 191, 36, 0.5)';
-    badge.style.background = 'rgba(251, 191, 36, 0.15)';
+    badge.className = 'badge badge-amber';
     details.innerHTML = `
-      <div class="row"><span class="row-bold">Maximální možná vůle (Vmax):</span><span class="val-green">${fmt(maxClearance * 1000)} µm</span></div>
-      <div class="row" style="margin-top: 6px;"><span class="row-bold">Maximální možný přesah (Pmax):</span><span class="val-red">${fmt(-minClearance * 1000, 1, false)} µm</span></div>
+      <div class="row"><span class="row-bold">Maximální možná vůle (Vmax):</span><span class="val-green">${fmtSign(maxClearance * 1000)} µm</span></div>
+      <div class="row" style="margin-top:4px;"><span class="row-bold">Maximální možný přesah (Pmax):</span><span class="val-red">${(-minClearance * 1000).toFixed(1)} µm</span></div>
     `;
   } else if (maxClearance <= 0) {
     badge.innerText = 'Přesahové (pevné)';
+    badge.style.background = 'rgba(248, 113, 113, 0.2)';
     badge.style.color = '#f87171';
-    badge.style.borderColor = 'rgba(248, 113, 113, 0.5)';
-    badge.style.background = 'rgba(248, 113, 113, 0.15)';
     details.innerHTML = `
-      <div class="row"><span class="row-bold">Maximální přesah (Pmax):</span><span class="val-red">${fmt(-minClearance * 1000, 1, false)} µm</span></div>
-      <div class="row" style="margin-top: 6px;"><span>Minimální přesah (Pmin):</span><span>${fmt(-maxClearance * 1000, 1, false)} µm</span></div>
+      <div class="row"><span class="row-bold">Maximální přesah (Pmax):</span><span class="val-red">${(-minClearance * 1000).toFixed(1)} µm</span></div>
+      <div class="row" style="margin-top:4px;"><span>Minimální přesah (Pmin):</span><span>${(-maxClearance * 1000).toFixed(1)} µm</span></div>
     `;
   } else {
     badge.innerText = 'Uložení s vůlí';
-    badge.style.color = '#4ade80';
-    badge.style.borderColor = 'rgba(74, 222, 128, 0.5)';
-    badge.style.background = 'rgba(74, 222, 128, 0.15)';
+    badge.className = 'badge badge-cyan';
     details.innerHTML = `
-      <div class="row"><span class="row-bold">Maximální vůle (Vmax):</span><span class="val-green">${fmt(maxClearance * 1000)} µm</span></div>
-      <div class="row" style="margin-top: 6px;"><span>Minimální vůle (Vmin):</span><span>${fmt(minClearance * 1000)} µm</span></div>
+      <div class="row"><span class="row-bold">Maximální vůle (Vmax):</span><span class="val-green">${fmtSign(maxClearance * 1000)} µm</span></div>
+      <div class="row" style="margin-top:4px;"><span>Minimální vůle (Vmin):</span><span>${fmtSign(minClearance * 1000)} µm</span></div>
     `;
   }
 }
 
-[nominalInput, holeSelect, holeItSelect, shaftSelect, shaftItSelect].forEach(el => {
-  el.addEventListener('input', update);
-  el.addEventListener('change', update);
-});
+// ============================================================================
+// 6. TVRDOST (ISO 18265)
+// ============================================================================
+const isoTable = [
+  [255, 76, 80, 0], [320, 95, 100, 0], [400, 119, 125, 0], [500, 149, 155, 0],
+  [600, 179, 185, 0], [700, 209, 215, 0], [800, 240, 245, 20.3], [850, 255, 260, 24.0],
+  [900, 271, 275, 27.1], [950, 285, 290, 29.2], [1000, 301, 305, 31.0], [1100, 331, 335, 34.4],
+  [1200, 360, 365, 37.7], [1300, 390, 395, 40.8], [1400, 419, 425, 43.4], [1500, 447, 455, 45.7],
+  [1600, 474, 480, 47.7], [1700, 501, 510, 49.6], [1800, 528, 535, 51.7], [1900, 553, 560, 53.8],
+  [2000, 578, 590, 55.7], [2100, 601, 615, 57.8], [2200, 627, 650, 60.0], [2300, 650, 720, 62.0],
+  [2400, 680, 800, 64.0], [2500, 700, 860, 66.0], [2600, 720, 940, 68.0]
+];
 
-update();
+let hardUnit = 'rm';
+
+function setHardnessUnit(u) {
+  hardUnit = u;
+  document.getElementById('btnRm').classList.toggle('active', u === 'rm');
+  document.getElementById('btnHb').classList.toggle('active', u === 'hb');
+  document.getElementById('btnHv').classList.toggle('active', u === 'hv');
+  document.getElementById('btnHrc').classList.toggle('active', u === 'hrc');
+  document.getElementById('hardInputLabel').innerText = `Zadaná hodnota (${u.toUpperCase()}):`;
+  calcHardness();
+}
+
+function calcHardness() {
+  const v = parseFloat(document.getElementById('hardVal').value) || 600;
+  let rm = 600, hb = 179, hv = 185, hrc = 0;
+
+  let colIdx = 0;
+  if (hardUnit === 'hb') colIdx = 1;
+  if (hardUnit === 'hv') colIdx = 2;
+  if (hardUnit === 'hrc') colIdx = 3;
+
+  if (hardUnit === 'hrc') {
+    hrc = v;
+    if (v < 20.3) {
+      const ratio = v / 20.3;
+      rm = Math.max(250, 800 * ratio);
+      hb = Math.max(76, 240 * ratio);
+      hv = Math.max(80, 245 * ratio);
+    } else {
+      for (let i = 6; i < isoTable.length - 1; i++) {
+        const h1 = isoTable[i][3], h2 = isoTable[i+1][3];
+        if (v >= h1 && v <= h2) {
+          const t = (v - h1) / (h2 - h1);
+          rm = isoTable[i][0] + t * (isoTable[i+1][0] - isoTable[i][0]);
+          hb = isoTable[i][1] + t * (isoTable[i+1][1] - isoTable[i][1]);
+          hv = isoTable[i][2] + t * (isoTable[i+1][2] - isoTable[i][2]);
+          break;
+        }
+      }
+    }
+  } else {
+    for (let i = 0; i < isoTable.length - 1; i++) {
+      const v1 = isoTable[i][colIdx], v2 = isoTable[i+1][colIdx];
+      if (v >= v1 && v <= v2) {
+        const t = (v - v1) / (v2 - v1);
+        rm = isoTable[i][0] + t * (isoTable[i+1][0] - isoTable[i][0]);
+        hb = isoTable[i][1] + t * (isoTable[i+1][1] - isoTable[i][1]);
+        hv = isoTable[i][2] + t * (isoTable[i+1][2] - isoTable[i][2]);
+        hrc = isoTable[i][3] + t * (isoTable[i+1][3] - isoTable[i][3]);
+        break;
+      }
+    }
+  }
+
+  document.getElementById('resRm').innerText = `${Math.round(rm)} MPa (N/mm²)`;
+  document.getElementById('resHb').innerText = `${Math.round(hb)} HB`;
+  document.getElementById('resHv').innerText = `${Math.round(hv)} HV`;
+  document.getElementById('resHrc').innerText = hrc >= 20 ? `${hrc.toFixed(1)} HRC` : '< 20 HRC (měkké)';
+}
+
+function copyWebLink() {
+  navigator.clipboard.writeText('https://www.precitool.cz');
+  alert('Web www.precitool.cz byl zkopírován do schránky!');
+}
+
+// Inicializace celé aplikace
+window.onload = function() {
+  initWmg();
+  initTapping();
+  initIso();
+  calcMilling();
+  calcTurningCoeffs();
+  calcDrilling();
+  calcHardness();
+};
 </script>
 </body>
 </html>
