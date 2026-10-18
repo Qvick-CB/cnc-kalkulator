@@ -47,24 +47,23 @@
     table, th, td { border: 1px solid rgba(255,255,255,0.12); }
     th, td { padding: 6px 8px; text-align: left; }
     .btn { background: #22d3ee; color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .btn-outline { background: transparent; border: 1px solid #38bdf8; color: #38bdf8; }
   </style>
 </head>
 <body>
 
 <div class="navbar">
-  <button class="nav-btn" onclick="openTab('frezovani')">Frézování</button>
+  <button class="nav-btn active" onclick="openTab('frezovani')">Frézování</button>
   <button class="nav-btn" onclick="openTab('soustruzeni')">Soustružení</button>
   <button class="nav-btn" onclick="openTab('vrtani')">Vrtání</button>
   <button class="nav-btn" onclick="openTab('zavitovani')">Závitování</button>
-  <button class="nav-btn active" onclick="openTab('iso')">ISO Tol.</button>
+  <button class="nav-btn" onclick="openTab('iso')">ISO Tol.</button>
   <button class="nav-btn" onclick="openTab('tvrdost')">Tvrdost</button>
   <button class="nav-btn" onclick="openTab('onas')">O nás</button>
 </div>
 
 <div class="container">
 
-  <!-- ==================== SDÍLENÝ MATERIÁL WMG ==================== -->
+  <!-- ==================== SDÍLENÝ MATERIÁL WMG (Pouze pro 4 moduly) ==================== -->
   <div class="card" id="wmgCard">
     <div class="header-row">
       <span style="font-weight: bold; color: #fbbf24; font-size: 0.95rem;">Materiál obrobku (WMG)</span>
@@ -86,7 +85,7 @@
   </div>
 
   <!-- ==================== 1. FRÉZOVÁNÍ ==================== -->
-  <div id="frezovani" class="tab-content">
+  <div id="frezovani" class="tab-content active">
     <div class="card">
       <h2>Nástroj a geometrie záběru</h2>
       <div class="segmented">
@@ -322,7 +321,7 @@
   </div>
 
   <!-- ==================== 5. ISO TOLERANCE ==================== -->
-  <div id="iso" class="tab-content active">
+  <div id="iso" class="tab-content">
     <div class="card">
       <label>Jmenovitý rozměr D (1 - 1000 mm)</label>
       <input type="number" id="isoNominal" value="90" min="1" max="1000" step="any" oninput="calcIso()">
@@ -478,7 +477,6 @@ function updateWmgInfo() {
   document.getElementById('wmgHardness').innerText = curMat.hardness;
   document.getElementById('wmgExamples').innerText = curMat.examples;
   
-  // Přepočet modulů
   const baseVc = parseFloat(document.getElementById('baseVc').value) || 180;
   document.getElementById('millVc').value = (baseVc * curMat.kvg).toFixed(1);
   calcMilling();
@@ -500,13 +498,21 @@ function onBaseVcChanged() {
   calcTurningCoeffs();
 }
 
-// Navigace v záložkách
+// Navigace v záložkách – WMG je zobrazeno POUZE pro první 4 obráběcí moduly
 function openTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(tabId));
   if (btn) btn.classList.add('active');
+
+  const machiningTabs = ['frezovani', 'soustruzeni', 'vrtani', 'zavitovani'];
+  const wmgCard = document.getElementById('wmgCard');
+  if (machiningTabs.includes(tabId)) {
+    wmgCard.style.display = 'block';
+  } else {
+    wmgCard.style.display = 'none';
+  }
 }
 
 // ============================================================================
@@ -1143,6 +1149,7 @@ window.onload = function() {
   calcTurningCoeffs();
   calcDrilling();
   calcHardness();
+  openTab('frezovani'); // Výchozí otevření na Frézování
 };
 </script>
 </body>
